@@ -11,11 +11,11 @@
         </section>
 
         @if(session('success'))
-            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{{ session('success') }}</div>
+            <div class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>
         @endif
 
         @if($errors->any())
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
                 <p class="font-black">يرجى مراجعة البيانات.</p>
                 <ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
             </div>
@@ -63,13 +63,13 @@
                             <div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h2 class="text-lg font-black text-slate-950">{{ $document->title }}</h2>
-                                    <span class="status-pill bg-cyan-50 text-cyan-800 ring-cyan-100">{{ $document->categoryLabel() }}</span>
+                                    <span class="status-pill bg-sky-50 text-sky-700 ring-sky-100">{{ $document->categoryLabel() }}</span>
                                 </div>
                                 <p class="mt-1 text-sm text-slate-500">آخر تحديث {{ $document->updated_at->diffForHumans() }}</p>
                             </div>
                             <details class="relative">
                                 <summary class="btn-secondary list-none">تعديل</summary>
-                                <div class="absolute left-0 z-20 mt-2 w-[28rem] max-w-[85vw] rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+                                <div class="popover absolute left-0 z-20 mt-2 w-[28rem] max-w-[85vw] p-4">
                                     <form method="POST" action="{{ route('projects.documentation.update', [$project, $document]) }}" enctype="multipart/form-data" class="space-y-3">
                                         @csrf
                                         @method('PATCH')
@@ -88,15 +88,15 @@
                             @if($document->attachments->isNotEmpty())
                                 <div class="mt-4 flex flex-wrap gap-2">
                                     @foreach($document->attachments as $attachment)
-                                        <a href="{{ asset('storage/'.$attachment->path) }}" target="_blank" class="status-pill bg-slate-100 text-slate-700 ring-slate-200">{{ $attachment->original_name }}</a>
+                                        <a href="{{ asset('storage/'.$attachment->path) }}" target="_blank" class="status-pill bg-slate-100 text-slate-600 ring-slate-200">{{ $attachment->original_name }}</a>
                                     @endforeach
                                 </div>
                             @endif
                             <details class="mt-4">
-                                <summary class="cursor-pointer text-sm font-black text-cyan-800">سجل التعديلات ({{ $document->revisions->count() }})</summary>
+                                <summary class="cursor-pointer text-sm font-black text-sky-700">سجل التعديلات ({{ $document->revisions->count() }})</summary>
                                 <div class="mt-3 space-y-2">
                                     @foreach($document->revisions->take(5) as $revision)
-                                        <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
+                                        <div class="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
                                             {{ $revision->change_summary }} - {{ $revision->user?->name ?? 'System' }} - {{ $revision->created_at->format('Y-m-d H:i') }}
                                         </div>
                                     @endforeach

@@ -1,12 +1,12 @@
 <x-guest-layout>
     <div class="mb-7">
         <p class="eyebrow">تأكيد البريد</p>
-        <h1 class="mt-2 text-2xl font-black text-slate-950">تحقق من بريدك الإلكتروني</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">أرسلنا رابط التحقق إلى بريدك. يمكنك طلب رابط جديد إذا لم يصلك.</p>
+        <h1 class="mt-2 text-3xl font-black text-slate-950">تحقق من بريدك الإلكتروني</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-600">أرسلنا رابط التحقق إلى بريدك. يمكنك طلب رابط جديد إذا لم يصلك.</p>
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+        <div class="mb-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">
             تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني.
         </div>
     @endif

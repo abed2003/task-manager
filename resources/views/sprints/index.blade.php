@@ -10,8 +10,8 @@
             </div>
         </section>
 
-        @if(session('success'))<div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><p class="font-black">يرجى مراجعة البيانات.</p><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @if(session('success'))<div class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>@endif
+        @if($errors->any())<div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100"><p class="font-black">يرجى مراجعة البيانات.</p><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
         <section class="grid gap-6 lg:grid-cols-[400px_1fr]">
             @if(auth()->user()->role === 'admin')
@@ -43,11 +43,11 @@
                         <div class="stat-card">
                             <div class="flex items-center justify-between gap-3">
                                 <p class="font-black text-slate-950">{{ $sprint->name }}</p>
-                                <span class="status-pill bg-cyan-50 text-cyan-800 ring-cyan-100">{{ $sprintStatuses[$sprint->status] }}</span>
+                                <span class="status-pill bg-sky-50 text-sky-700 ring-sky-100">{{ $sprintStatuses[$sprint->status] }}</span>
                             </div>
                             <p class="mt-2 text-sm text-slate-500">{{ $sprint->starts_at->format('Y-m-d') }} - {{ $sprint->ends_at->format('Y-m-d') }}</p>
-                            <div class="mt-4 h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-cyan-700" style="width: {{ $sprint->progress() }}%"></div></div>
-                            <p class="mt-2 text-sm font-bold text-slate-600">{{ $sprint->progress() }}% completed</p>
+                            <div class="mt-4 h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-slate-950" style="width: {{ $sprint->progress() }}%"></div></div>
+                            <p class="mt-2 text-sm font-bold text-slate-700">{{ $sprint->progress() }}% completed</p>
                         </div>
                     @endforeach
                 </div>
@@ -73,11 +73,11 @@
 
                         <div id="sprint-board" class="grid gap-4 p-4 xl:grid-cols-4">
                             @foreach($taskStatuses as $status => $label)
-                                <div class="rounded-lg border border-slate-200 bg-slate-50">
+                                <div class="rounded-2xl bg-slate-50">
                                     <div class="border-b border-slate-200 px-4 py-3"><h3 class="font-black text-slate-950">{{ $label }}</h3></div>
                                     <div class="sprint-drop-zone min-h-80 space-y-3 p-3" data-status="{{ $status }}">
                                         @foreach($activeSprint->tasks->where('status', $status) as $task)
-                                            <article draggable="true" data-sprint-task data-update-url="{{ route('projects.sprints.tasks.status', [$project, $activeSprint, $task]) }}" data-status="{{ $task->status }}" class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                                            <article draggable="true" data-sprint-task data-update-url="{{ route('projects.sprints.tasks.status', [$project, $activeSprint, $task]) }}" data-status="{{ $task->status }}" class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                                                 <h4 class="text-sm font-black text-slate-950">{{ $task->title }}</h4>
                                                 <p class="mt-2 text-xs font-bold text-slate-500">{{ $task->user?->name }}</p>
                                             </article>

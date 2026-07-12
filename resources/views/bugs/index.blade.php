@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $severityStyle = ['low' => 'bg-slate-100 text-slate-700 ring-slate-200', 'medium' => 'bg-amber-50 text-amber-700 ring-amber-100', 'high' => 'bg-orange-50 text-orange-700 ring-orange-100', 'critical' => 'bg-red-50 text-red-700 ring-red-100'];
+        $severityStyle = ['low' => 'bg-slate-100 text-slate-600 ring-slate-200', 'medium' => 'bg-amber-50 text-amber-700 ring-amber-100', 'high' => 'bg-orange-50 text-orange-700 ring-orange-100', 'critical' => 'bg-red-50 text-red-700 ring-red-100'];
     @endphp
 
     <div class="space-y-6">
@@ -14,8 +14,8 @@
             </div>
         </section>
 
-        @if(session('success'))<div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"><p class="font-black">يرجى مراجعة البيانات.</p><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @if(session('success'))<div class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>@endif
+        @if($errors->any())<div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100"><p class="font-black">يرجى مراجعة البيانات.</p><ul class="mt-2 list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             @foreach($statusLabels as $status => $label)
@@ -59,7 +59,7 @@
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h2 class="text-lg font-black text-slate-950">{{ $bug->title }}</h2>
                                     <span class="status-pill {{ $severityStyle[$bug->severity] ?? $severityStyle['medium'] }}">{{ $severityLabels[$bug->severity] }}</span>
-                                    <span class="status-pill bg-cyan-50 text-cyan-800 ring-cyan-100">{{ $statusLabels[$bug->status] }}</span>
+                                    <span class="status-pill bg-sky-50 text-sky-700 ring-sky-100">{{ $statusLabels[$bug->status] }}</span>
                                 </div>
                                 <p class="mt-1 text-sm text-slate-500">Reported by {{ $bug->reporter?->name ?? 'Unknown' }} - {{ $bug->created_at->format('Y-m-d') }}</p>
                             </div>
@@ -74,9 +74,9 @@
                         </div>
                         <div class="panel-body space-y-4">
                             <p class="text-sm leading-7 text-slate-700">{{ $bug->description }}</p>
-                            @if($bug->reproduction_steps)<div class="rounded-lg bg-slate-50 p-4 text-sm leading-7 text-slate-700 ring-1 ring-slate-200"><p class="font-black text-slate-950">خطوات إعادة المشكلة</p>{{ $bug->reproduction_steps }}</div>@endif
+                            @if($bug->reproduction_steps)<div class="rounded-xl bg-slate-50 p-4 text-sm leading-7 text-slate-700"><p class="font-black text-slate-950">خطوات إعادة المشكلة</p>{{ $bug->reproduction_steps }}</div>@endif
                             <div class="flex flex-wrap gap-2 text-xs font-bold">
-                                @if($bug->task)<span class="status-pill bg-slate-100 text-slate-700 ring-slate-200">Task: {{ $bug->task->title }}</span>@endif
+                                @if($bug->task)<span class="status-pill bg-slate-100 text-slate-600 ring-slate-200">Task: {{ $bug->task->title }}</span>@endif
                                 @if($bug->assignee)<span class="status-pill bg-sky-50 text-sky-700 ring-sky-100">Assignee: {{ $bug->assignee->name }}</span>@endif
                             </div>
                             <form method="POST" action="{{ route('projects.bugs.comments.store', [$project, $bug]) }}" class="flex gap-2">
@@ -86,7 +86,7 @@
                             </form>
                             <div class="space-y-2">
                                 @foreach($bug->comments as $comment)
-                                    <div class="rounded-lg bg-slate-50 p-3 text-sm ring-1 ring-slate-200"><span class="font-black">{{ $comment->user?->name }}:</span> {{ $comment->body }}</div>
+                                    <div class="rounded-xl bg-slate-50 p-3 text-sm text-slate-700"><span class="font-black text-slate-950">{{ $comment->user?->name }}:</span> {{ $comment->body }}</div>
                                 @endforeach
                             </div>
                         </div>

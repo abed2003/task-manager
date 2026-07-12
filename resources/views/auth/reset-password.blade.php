@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-950">إعادة تعيين كلمة المرور</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
+        <h1 class="text-3xl font-black text-slate-950">إعادة تعيين كلمة المرور</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
             أدخل كلمة مرور جديدة لإكمال عملية التحقق واستعادة الدخول.
         </p>
     </div>

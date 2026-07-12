@@ -5,7 +5,7 @@
         $statusStyles = [
             'active' => 'bg-blue-50 text-blue-700 ring-blue-100',
             'completed' => 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-            'on_hold' => 'bg-slate-100 text-slate-700 ring-slate-200',
+            'on_hold' => 'bg-slate-100 text-slate-600 ring-slate-200',
             'review' => 'bg-amber-50 text-amber-700 ring-amber-100',
         ];
 
@@ -13,25 +13,26 @@
             ['label' => 'إجمالي المشاريع', 'value' => $stats['total_projects'], 'tone' => 'text-slate-950', 'hint' => 'كل المشاريع المسجلة'],
             ['label' => 'المشاريع قيد التنفيذ', 'value' => $stats['active_projects'], 'tone' => 'text-blue-700', 'hint' => 'مشاريع نشطة حالياً'],
             ['label' => 'المشاريع المكتملة', 'value' => $stats['completed_projects'], 'tone' => 'text-emerald-700', 'hint' => 'تم تسليمها أو إغلاقها'],
-            ['label' => 'المشاريع المتوقفة', 'value' => $stats['on_hold_projects'], 'tone' => 'text-slate-700', 'hint' => 'بانتظار قرار أو متابعة'],
+            ['label' => 'المشاريع المتوقفة', 'value' => $stats['on_hold_projects'], 'tone' => 'text-slate-600', 'hint' => 'بانتظار قرار أو متابعة'],
         ];
     @endphp
 
     <div class="space-y-6">
-        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                    <p class="text-sm font-bold text-blue-700">إدارة المشاريع</p>
-                    <h1 class="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">لوحة مشاريع شركات البرمجيات</h1>
-                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-                        متابعة المشاريع والعملاء ومدراء المشاريع ونسب الإنجاز من مكان واحد بتصميم إداري واضح ومنظم.
-                    </p>
-                </div>
+        <section class="page-hero overflow-visible">
+            <div class="page-hero-inner rounded-[28px]">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p class="hero-eyebrow">إدارة المشاريع</p>
+                        <h1 class="hero-title">لوحة مشاريع شركات البرمجيات</h1>
+                        <p class="hero-subtitle">
+                            متابعة المشاريع والعملاء ومدراء المشاريع ونسب الإنجاز من مكان واحد بتصميم إداري واضح ومنظم.
+                        </p>
+                    </div>
 
-                @if(auth()->user()->role === 'admin')
-                    <details class="relative">
-                        <summary class="btn-primary cursor-pointer list-none">إضافة مشروع</summary>
-                        <div class="absolute left-0 z-30 mt-3 w-[min(92vw,520px)] rounded-lg border border-slate-200 bg-white p-5 shadow-xl">
+                    @if(auth()->user()->role === 'admin')
+                        <details class="relative">
+                            <summary class="btn-primary cursor-pointer list-none">إضافة مشروع</summary>
+                            <div class="popover absolute left-0 z-30 mt-3 w-[min(92vw,520px)] p-5">
                             <form method="POST" action="{{ route('projects.store') }}" class="space-y-4">
                                 @csrf
                                 <div class="grid gap-4 sm:grid-cols-2">
@@ -77,18 +78,19 @@
                                 </div>
                                 <button type="submit" class="btn-primary w-full">حفظ المشروع</button>
                             </form>
-                        </div>
-                    </details>
-                @endif
+                            </div>
+                        </details>
+                    @endif
+                </div>
             </div>
         </section>
 
         @if(session('success'))
-            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{{ session('success') }}</div>
+            <div class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>
         @endif
 
         @if($errors->any())
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
                 <p class="font-black">يرجى مراجعة البيانات المدخلة.</p>
                 <ul class="mt-2 list-inside list-disc space-y-1">
                     @foreach($errors->all() as $error)
@@ -100,20 +102,20 @@
 
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             @foreach($statCards as $card)
-                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="stat-card">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="text-sm font-bold text-slate-500">{{ $card['label'] }}</p>
                             <p class="mt-3 text-3xl font-black {{ $card['tone'] }}">{{ $card['value'] }}</p>
                         </div>
-                        <span class="grid h-10 w-10 place-items-center rounded-lg bg-blue-50 text-sm font-black text-blue-700 ring-1 ring-blue-100">PM</span>
+                        <span class="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 text-sm font-black text-slate-950">PM</span>
                     </div>
-                    <p class="mt-3 text-xs font-semibold text-slate-400">{{ $card['hint'] }}</p>
+                    <p class="mt-4 text-xs font-bold text-slate-400">{{ $card['hint'] }}</p>
                 </div>
             @endforeach
         </section>
 
-        <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section class="panel p-5">
             <form method="GET" action="{{ route('projects.index') }}" class="grid gap-3 lg:grid-cols-[1.4fr_220px_180px_180px_auto] lg:items-end">
                 <div>
                     <label for="search" class="field-label">البحث عن مشروع</label>
@@ -143,13 +145,13 @@
             </form>
         </section>
 
-        <section class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <section class="panel overflow-hidden">
             <div class="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="text-base font-black text-slate-950">قائمة المشاريع</h2>
                     <p class="mt-1 text-sm text-slate-500">بيانات المشاريع مرتبطة مباشرة بقاعدة البيانات.</p>
                 </div>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-700">
                     {{ $projects->total() }} مشروع
                 </span>
             </div>
@@ -169,30 +171,30 @@
                             <th class="px-5 py-3">الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white">
+                    <tbody class="divide-y divide-slate-100">
                         @forelse($projects as $project)
                             @php
                                 $completedCount = $project->tasks->where('status', 'completed')->count();
                                 $progress = $project->tasks_count > 0 ? round(($completedCount / $project->tasks_count) * 100) : 0;
                                 $manager = $project->manager?->name ?? $project->creator?->name ?? 'غير محدد';
                             @endphp
-                            <tr class="align-top transition hover:bg-slate-50/70">
+                            <tr class="align-top transition hover:bg-slate-50">
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="font-black text-slate-950">{{ $project->name }}</div>
                                     <div class="mt-1 text-xs font-semibold text-slate-400">{{ $project->tasks_count }} مهمة</div>
                                 </td>
                                 <td class="max-w-xs px-5 py-4">
-                                    <p class="line-clamp-2 text-sm leading-6 text-slate-600">{{ $project->description ?: 'لا يوجد وصف مختصر' }}</p>
+                                    <p class="line-clamp-2 text-sm leading-6 text-slate-500">{{ $project->description ?: 'لا يوجد وصف مختصر' }}</p>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm font-bold text-slate-700">{{ $project->client_name ?: 'غير محدد' }}</td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex items-center gap-2">
-                                        <span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-xs font-black text-blue-700 ring-1 ring-blue-100">{{ mb_substr($manager, 0, 1) }}</span>
+                                        <span class="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-xs font-black text-slate-950">{{ mb_substr($manager, 0, 1) }}</span>
                                         <span class="text-sm font-bold text-slate-700">{{ $manager }}</span>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <span class="status-pill {{ $statusStyles[$project->status] ?? 'bg-slate-100 text-slate-700 ring-slate-200' }}">{{ $project->statusLabel() }}</span>
+                                    <span class="status-pill {{ $statusStyles[$project->status] ?? 'bg-slate-100 text-slate-600 ring-slate-200' }}">{{ $project->statusLabel() }}</span>
                                 </td>
                                 <td class="min-w-44 px-5 py-4">
                                     <div class="flex items-center justify-between gap-3 text-xs font-bold text-slate-500">
@@ -200,19 +202,19 @@
                                         <span>{{ $completedCount }}/{{ $project->tasks_count }}</span>
                                     </div>
                                     <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                                        <div class="h-full rounded-full bg-blue-600" style="width: {{ $progress }}%"></div>
+                                        <div class="h-full rounded-full bg-slate-950" style="width: {{ $progress }}%"></div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4 text-sm font-semibold text-slate-600">{{ $project->starts_at?->format('Y-m-d') ?? '-' }}</td>
-                                <td class="whitespace-nowrap px-5 py-4 text-sm font-semibold text-slate-600">{{ $project->due_at?->format('Y-m-d') ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm font-semibold text-slate-500">{{ $project->starts_at?->format('Y-m-d') ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm font-semibold text-slate-500">{{ $project->due_at?->format('Y-m-d') ?? '-' }}</td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex flex-wrap gap-2">
-                                        <a href="{{ route('tasks.index', ['project_id' => $project->id]) }}" class="btn-secondary px-3 py-2">المهام</a>
-                                        <a href="{{ route('projects.documentation.index', $project) }}" class="btn-secondary px-3 py-2">الوثائق</a>
+                                        <a href="{{ route('tasks.index', ['project_id' => $project->id]) }}" class="btn-secondary px-4 py-2 text-xs">المهام</a>
+                                        <a href="{{ route('projects.documentation.index', $project) }}" class="btn-secondary px-4 py-2 text-xs">الوثائق</a>
                                         @if(auth()->user()->role === 'admin')
                                             <details class="relative">
-                                                <summary class="btn-secondary cursor-pointer list-none px-3 py-2">تعديل</summary>
-                                                <div class="absolute left-0 z-30 mt-2 w-96 max-w-[85vw] rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+                                                <summary class="btn-secondary cursor-pointer list-none px-4 py-2 text-xs">تعديل</summary>
+                                                <div class="popover absolute left-0 z-30 mt-2 w-96 max-w-[85vw] p-4">
                                                     <form method="POST" action="{{ route('projects.update', $project) }}" class="space-y-3">
                                                         @csrf
                                                         @method('PATCH')
@@ -241,7 +243,7 @@
                                             <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('هل تريد حذف هذا المشروع؟ سيتم حذف المهام المرتبطة به أيضاً.')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn-danger px-3 py-2">حذف</button>
+                                                <button type="submit" class="btn-danger px-4 py-2 text-xs">حذف</button>
                                             </form>
                                         @endif
                                     </div>

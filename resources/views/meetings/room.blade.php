@@ -3,7 +3,7 @@
 @section('content')
     <div
         id="meeting-room"
-        class="min-h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-slate-200 bg-slate-950 text-white shadow-sm"
+        class="min-h-[calc(100vh-8rem)] overflow-hidden rounded-3xl border border-white/10 bg-[#0c0d13] text-white shadow-lg shadow-black/30"
         data-meeting-id="{{ $meeting->id }}"
         data-peer-id="peer-{{ auth()->id() }}-{{ \Illuminate\Support\Str::uuid() }}"
         data-user-name="{{ auth()->user()->name }}"
@@ -18,7 +18,7 @@
             <main class="flex min-h-[560px] flex-col">
                 <header class="flex flex-col gap-3 border-b border-white/10 bg-slate-900/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="min-w-0">
-                        <p class="text-xs font-bold text-blue-200">غرفة اجتماع مباشرة</p>
+                        <p class="text-xs font-bold text-white/60">غرفة اجتماع مباشرة</p>
                         <h1 class="mt-1 truncate text-lg font-black text-white">{{ $meeting->title }}</h1>
                         <p class="mt-1 text-xs font-semibold text-slate-400">
                             {{ $meeting->starts_at->format('Y-m-d H:i') }}
@@ -42,7 +42,7 @@
                                     <p class="text-sm font-black">أنت</p>
                                     <p id="local-state" class="mt-0.5 text-xs text-slate-300">لم يتم تشغيل الكاميرا بعد</p>
                                 </div>
-                                <span id="screen-badge" class="hidden rounded-full bg-blue-500 px-2.5 py-1 text-xs font-bold text-white">مشاركة شاشة</span>
+                                <span id="screen-badge" class="hidden rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-950">مشاركة شاشة</span>
                             </div>
                         </article>
                     </div>
@@ -56,7 +56,7 @@
                         <button id="mic-button" type="button" class="rounded-lg bg-white px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-slate-100">
                             تشغيل المايك
                         </button>
-                        <button id="screen-button" type="button" class="rounded-lg bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700">
+                        <button id="screen-button" type="button" class="rounded-lg bg-slate-700 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-600">
                             مشاركة الشاشة
                         </button>
                         <button id="leave-button" type="button" class="rounded-lg bg-red-600 px-4 py-3 text-sm font-black text-white transition hover:bg-red-700">
@@ -67,7 +67,7 @@
                 </footer>
             </main>
 
-            <aside class="border-t border-white/10 bg-white text-slate-900 lg:border-r lg:border-t-0">
+            <aside class="border-t border-slate-100 bg-white text-slate-950 lg:border-r lg:border-t-0">
                 <div class="border-b border-slate-100 p-5">
                     <h2 class="text-base font-black text-slate-950">المشاركون</h2>
                     <p class="mt-1 text-sm text-slate-500">الحضور المتصلون الآن وحالة الأجهزة.</p>
@@ -76,7 +76,7 @@
 
                 <div class="border-t border-slate-100 p-5">
                     <h3 class="text-sm font-black text-slate-950">محاور الاجتماع</h3>
-                    <p class="mt-2 text-sm leading-6 text-slate-600">{{ $meeting->agenda ?: 'لا توجد محاور محددة.' }}</p>
+                    <p class="mt-2 text-sm leading-6 text-slate-500">{{ $meeting->agenda ?: 'لا توجد محاور محددة.' }}</p>
 
                     <h3 class="mt-5 text-sm font-black text-slate-950">الحضور المخطط</h3>
                     <div class="mt-2 flex flex-wrap gap-2">
@@ -346,7 +346,7 @@
 
                 const renderParticipants = (participants) => {
                     participantsList.innerHTML = participants.map((participant) => `
-                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <div class="rounded-xl bg-slate-50 p-3">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-black text-slate-950">${participant.peer_id === peerId ? 'أنت' : participant.display_name}</p>

@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="mb-7">
         <p class="eyebrow">تأكيد أمني</p>
-        <h1 class="mt-2 text-2xl font-black text-slate-950">تأكيد كلمة المرور</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">هذه منطقة محمية. أكد كلمة المرور قبل المتابعة.</p>
+        <h1 class="mt-2 text-3xl font-black text-slate-950">تأكيد كلمة المرور</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-600">هذه منطقة محمية. أكد كلمة المرور قبل المتابعة.</p>
     </div>
 
     <form method="POST" action="{{ route('password.confirm') }}" class="space-y-5">

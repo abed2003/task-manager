@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-950">نسيت كلمة المرور؟</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
+        <h1 class="text-3xl font-black text-slate-950">نسيت كلمة المرور؟</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
             أدخل بريدك الإلكتروني، وسنرسل لك رابطاً للتحقق وإعادة تعيين كلمة المرور.
         </p>
     </div>
@@ -21,9 +21,9 @@
             إرسال رابط إعادة التعيين
         </x-primary-button>
 
-        <p class="text-center text-sm text-slate-500">
+        <p class="text-center text-sm text-slate-600">
             تذكرت كلمة المرور؟
-            <a href="{{ route('login') }}" class="font-semibold text-teal-700 hover:text-teal-800">تسجيل الدخول</a>
+            <a href="{{ route('login') }}" class="font-black text-slate-950 underline">تسجيل الدخول</a>
         </p>
     </form>
 </x-guest-layout>
