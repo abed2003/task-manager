@@ -9,6 +9,7 @@ use App\Notifications\WorkspaceNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
@@ -16,18 +17,11 @@ class ProjectController extends Controller
     {
         $user = auth()->user();
 
-        $baseProjectsQuery = Project::query();
-
-        if ($user->role !== 'admin') {
-            $baseProjectsQuery->where(function ($query) use ($user) {
-                $query->where('manager_id', $user->id)
-                    ->orWhereHas('tasks', fn ($tasksQuery) => $tasksQuery->where('user_id', $user->id));
-            });
-        }
+        $baseProjectsQuery = Project::accessibleBy($user);
 
         $projectsQuery = (clone $baseProjectsQuery)
-            ->with(['tasks.user', 'creator', 'manager'])
-            ->withCount('tasks')
+            ->with(['tasks.user', 'creator', 'manager', 'members'])
+            ->withCount(['tasks', 'members'])
             ->latest();
 
         $projectsQuery
@@ -116,7 +110,9 @@ class ProjectController extends Controller
 
     public function storeTask(Request $request, Project $project): RedirectResponse
     {
-        $this->authorizeAdmin();
+        $user = $request->user();
+
+        abort_unless($project->canManageMembers($user), 403);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -125,12 +121,20 @@ class ProjectController extends Controller
             'status' => ['required', Rule::in(array_keys(Task::statusLabels()))],
             'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
             'due_at' => ['nullable', 'date'],
+            'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:9999'],
         ]);
+
+        if ($user->role !== 'admin' && ! in_array((int) $validated['user_id'], $project->assignableUserIds(), true)) {
+            throw ValidationException::withMessages([
+                'user_id' => 'يجب أن يكون الشخص عضواً في المشروع. أضفه من صفحة أعضاء المشروع أولاً.',
+            ]);
+        }
 
         $task = $project->tasks()->create($validated + [
             'is_completed' => $validated['status'] === Task::STATUS_COMPLETED,
         ]);
 
+        $project->addMember($task->user_id, $request->user());
         $task->recordActivity('created', 'أنشأ المهمة ضمن المشروع '.$project->name);
 
         $task->user?->notify(new WorkspaceNotification(
@@ -139,7 +143,7 @@ class ProjectController extends Controller
             route('tasks.show', $task),
         ));
 
-        return redirect()->route('projects.index')->with('success', 'تم إسناد المهمة داخل المشروع بنجاح.');
+        return back()->with('success', 'تم إسناد المهمة داخل المشروع بنجاح.');
     }
 
     private function authorizeAdmin(): void

@@ -3,6 +3,7 @@
 @section('content')
     @php
         $isAdmin = auth()->user()->role === 'admin';
+        $canManage = $task->canBeManagedBy(auth()->user());
         $statusTones = [
             'todo' => 'bg-slate-100 text-slate-700 ring-slate-200',
             'in_progress' => 'bg-amber-50 text-amber-800 ring-amber-200',
@@ -186,7 +187,7 @@
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="redirect_to" value="show">
-                        @if($isAdmin)
+                        @if($canManage)
                             <input type="hidden" name="title" value="{{ $task->title }}">
                             <input type="hidden" name="description" value="{{ $task->description }}">
                             <input type="hidden" name="project_id" value="{{ $task->project_id }}">

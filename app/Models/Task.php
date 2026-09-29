@@ -77,9 +77,18 @@ class Task extends Model
             && $this->due_at->lt(now()->startOfDay());
     }
 
+    /**
+     * Admins manage every task; project managers manage the tasks of their projects.
+     */
+    public function canBeManagedBy(User $user): bool
+    {
+        return $user->role === 'admin'
+            || ($this->project !== null && (int) $this->project->manager_id === $user->id);
+    }
+
     public function canBeAccessedBy(User $user): bool
     {
-        return $user->role === 'admin' || $this->user_id === $user->id;
+        return (int) $this->user_id === $user->id || $this->canBeManagedBy($user);
     }
 
     public function loggedHours(): float

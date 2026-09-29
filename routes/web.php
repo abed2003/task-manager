@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectDocumentationController;
+use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\BugReportController;
 use App\Http\Controllers\SprintController;
 use App\Http\Controllers\TaskCollaborationController;
@@ -25,6 +26,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // Routes للمهام
 Route::middleware(['auth'])->group(function () {
     Route::resource('projects', ProjectController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('/projects/{project}/members', [ProjectMemberController::class, 'index'])->name('projects.members.index');
+    Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+    Route::delete('/projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
     Route::get('/projects/{project}/documentation', [ProjectDocumentationController::class, 'index'])->name('projects.documentation.index');
     Route::post('/projects/{project}/documentation', [ProjectDocumentationController::class, 'store'])->name('projects.documentation.store');
     Route::patch('/projects/{project}/documentation/{document}', [ProjectDocumentationController::class, 'update'])->name('projects.documentation.update');

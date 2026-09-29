@@ -61,7 +61,7 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-black text-white">Workflow Board</span>
-                        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-700">{{ auth()->user()->role === 'admin' ? 'كل الفريق' : 'مهامي فقط' }}</span>
+                        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-700">{{ auth()->user()->role === 'admin' ? 'كل الفريق' : ($canAssignTasks ? 'مهامي ومهام مشاريعي' : 'مهامي فقط') }}</span>
                     </div>
                     <h1 class="hero-title">لوحة تنفيذ المهام</h1>
                     <p class="hero-subtitle">
@@ -116,7 +116,7 @@
                         {{ $selectedProject ? 'المعروض الآن: ' . $selectedProject->name : 'ابحث وصفِّ المهام حسب المشروع أو الأولوية أو تاريخ الاستحقاق.' }}
                     </p>
                 </div>
-                <div class="grid gap-3 sm:grid-cols-2 {{ auth()->user()->role === 'admin' ? 'lg:grid-cols-6' : 'lg:grid-cols-5' }}">
+                <div class="grid gap-3 sm:grid-cols-2 {{ $canAssignTasks ? 'lg:grid-cols-6' : 'lg:grid-cols-5' }}">
                     <input name="search" type="search" value="{{ $filters['search'] ?? '' }}" placeholder="بحث في العنوان والوصف..." class="lg:col-span-2">
                     <select id="project_filter" name="project_id" onchange="this.form.submit()">
                         <option value="">كل المشاريع</option>
@@ -130,10 +130,10 @@
                             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
-                    @if(auth()->user()->role === 'admin')
+                    @if($canAssignTasks)
                         <select name="assignee" onchange="this.form.submit()">
                             <option value="">كل أعضاء الفريق</option>
-                            @foreach($users as $user)
+                            @foreach($assignableUsers as $user)
                                 <option value="{{ $user->id }}" @selected((int) ($filters['assignee'] ?? 0) === $user->id)>{{ $user->name }}</option>
                             @endforeach
                         </select>
@@ -175,7 +175,7 @@
             </div>
         @endif
 
-        @if(auth()->user()->role === 'admin')
+        @if($canAssignTasks)
             <details class="panel">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
                     <div>
@@ -187,15 +187,15 @@
                 <form method="POST" action="{{ route('tasks.store', array_filter(['project_id' => $selectedProjectId])) }}" class="grid gap-3 border-t border-slate-100 p-5 lg:grid-cols-6">
                     @csrf
                     <input name="title" type="text" value="{{ old('title') }}" placeholder="عنوان المهمة" required class="lg:col-span-2">
-                    <select name="project_id">
-                        <option value="">بدون مشروع</option>
-                        @foreach($projects as $project)
+                    <select name="project_id" @required(auth()->user()->role !== 'admin')>
+                        <option value="">{{ auth()->user()->role === 'admin' ? 'بدون مشروع' : 'اختر المشروع' }}</option>
+                        @foreach($assignableProjects as $project)
                             <option value="{{ $project->id }}" @selected((int) old('project_id', $selectedProjectId) === $project->id)>{{ $project->name }}</option>
                         @endforeach
                     </select>
                     <select name="user_id" required>
                         <option value="">المستخدم</option>
-                        @foreach($users as $user)
+                        @foreach($assignableUsers as $user)
                             <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }}</option>
                         @endforeach
                     </select>
@@ -246,6 +246,7 @@
                         data-status="{{ $status }}"
                     >
                         @forelse($columnTasks as $task)
+                            @php($canManageTask = $task->canBeManagedBy(auth()->user()))
                             <article
                                 draggable="true"
                                 data-task-card
@@ -276,7 +277,7 @@
                                 <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
                                     <span data-status-badge class="rounded-full px-2.5 py-1 ring-1 {{ $meta['soft'] }} {{ $meta['text'] }} {{ $meta['ring'] }}">{{ $task->statusLabel() }}</span>
                                     <span class="rounded-full px-2.5 py-1 ring-1 {{ $priorityMeta[$task->priority] ?? $priorityMeta['medium'] }}">{{ $task->priorityLabel() }}</span>
-                                    @if(auth()->user()->role === 'admin' && $task->user)
+                                    @if($canAssignTasks && $task->user)
                                         <span class="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">{{ $task->user->name }}</span>
                                     @endif
                                     @if($task->due_at)
@@ -321,17 +322,17 @@
                                                 @csrf
                                                 @method('PATCH')
 
-                                                @if(auth()->user()->role === 'admin')
+                                                @if($canManageTask)
                                                     <input name="title" type="text" value="{{ $task->title }}" required class="block w-full">
                                                     <textarea name="description" rows="3" class="block w-full">{{ $task->description }}</textarea>
                                                     <select name="project_id" class="block w-full">
-                                                        <option value="">بدون مشروع</option>
-                                                        @foreach($projects as $project)
+                                                        @if(auth()->user()->role === 'admin')<option value="">بدون مشروع</option>@endif
+                                                        @foreach($assignableProjects as $project)
                                                             <option value="{{ $project->id }}" @selected($task->project_id === $project->id)>{{ $project->name }}</option>
                                                         @endforeach
                                                     </select>
                                                     <select name="user_id" required class="block w-full">
-                                                        @foreach($users as $user)
+                                                        @foreach($assignableUsers as $user)
                                                             <option value="{{ $user->id }}" @selected($task->user_id === $user->id)>{{ $user->name }}</option>
                                                         @endforeach
                                                     </select>
@@ -343,7 +344,7 @@
                                                     @endforeach
                                                 </select>
 
-                                                @if(auth()->user()->role === 'admin')
+                                                @if($canManageTask)
                                                     <select name="priority" class="block w-full">
                                                         <option value="medium" @selected($task->priority === 'medium')>متوسطة</option>
                                                         <option value="high" @selected($task->priority === 'high')>عالية</option>
@@ -360,7 +361,7 @@
                                         </div>
                                     </div>
 
-                                    @if(auth()->user()->role === 'admin')
+                                    @if($canManageTask)
                                         <form method="POST" action="{{ route('tasks.destroy', array_filter(['task' => $task->id, 'project_id' => $selectedProjectId])) }}" onsubmit="return confirm('هل تريد حذف هذه المهمة؟')">
                                             @csrf
                                             @method('DELETE')

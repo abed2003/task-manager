@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\WorkspaceNotification;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class TaskController extends Controller
 {
@@ -17,12 +18,18 @@ class TaskController extends Controller
         $user = auth()->user();
         $isAdmin = $user->role === 'admin';
 
+        $managedProjects = Project::managedBy($user)->with('members')->orderBy('name')->get();
+        $isManager = $isAdmin || $managedProjects->isNotEmpty();
+
         if ($isAdmin) {
             $tasksQuery = Task::with(['user', 'project']);
             $projects = Project::orderBy('name')->get();
         } else {
-            $tasksQuery = $user->tasks()->with('project');
-            $projects = Project::whereHas('tasks', fn ($query) => $query->where('user_id', $user->id))
+            // Members see their own tasks; project managers also follow every task in their projects.
+            $tasksQuery = Task::with(['user', 'project'])->where(fn ($query) => $query
+                ->where('user_id', $user->id)
+                ->orWhereIn('project_id', $managedProjects->pluck('id')));
+            $projects = Project::accessibleBy($user)
                 ->orderBy('name')
                 ->get();
         }
@@ -47,7 +54,7 @@ class TaskController extends Controller
                 $request->filled('priority') && array_key_exists($request->input('priority'), Task::priorityLabels()),
                 fn ($query) => $query->where('priority', $request->input('priority'))
             )
-            ->when($isAdmin && $request->filled('assignee'), fn ($query) => $query->where('user_id', $request->integer('assignee')))
+            ->when($isManager && $request->filled('assignee'), fn ($query) => $query->where('user_id', $request->integer('assignee')))
             ->when($request->input('due') === 'overdue', fn ($query) => $query
                 ->where('status', '!=', Task::STATUS_COMPLETED)
                 ->whereNotNull('due_at')
@@ -71,6 +78,11 @@ class TaskController extends Controller
             'taskStatuses' => Task::statusLabels(),
             'priorityLabels' => Task::priorityLabels(),
             'filters' => $filters,
+            'canAssignTasks' => $isManager,
+            'assignableProjects' => $isAdmin ? $projects : $managedProjects,
+            'assignableUsers' => $isAdmin
+                ? User::orderBy('name')->get()
+                : User::whereIn('id', $managedProjects->flatMap->assignableUserIds()->unique())->orderBy('name')->get(),
         ]);
     }
 
@@ -98,10 +110,13 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-        abort_unless(auth()->user()->role === 'admin', 403);
+        $user = $request->user();
+        $isAdmin = $user->role === 'admin';
+
+        abort_unless($isAdmin || Project::managedBy($user)->exists(), 403);
 
         $validated = $request->validate([
-            'project_id' => ['nullable', 'exists:projects,id'],
+            'project_id' => [$isAdmin ? 'nullable' : 'required', 'exists:projects,id'],
             'user_id' => ['required', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -111,10 +126,13 @@ class TaskController extends Controller
             'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:9999'],
         ]);
 
+        $this->ensureAssignmentAllowed($user, $validated['project_id'] ?? null, (int) $validated['user_id']);
+
         $task = Task::create($validated + [
             'is_completed' => $validated['status'] === Task::STATUS_COMPLETED,
         ]);
 
+        $task->project?->addMember($task->user_id, $request->user());
         $task->recordActivity('created', 'أنشأ المهمة وأسندها إلى '.($task->user?->name ?? '-'));
 
         $task->user?->notify(new WorkspaceNotification(
@@ -130,17 +148,19 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
-        if (auth()->user()->role !== 'admin' && $task->user_id !== auth()->id()) {
-            abort(403, 'لا يمكنك تعديل مهمة ليست مخصصة لك.');
-        }
+        $user = $request->user();
+
+        abort_unless($task->canBeAccessedBy($user), 403, 'لا يمكنك تعديل مهمة ليست مخصصة لك.');
+
+        $canManage = $task->canBeManagedBy($user);
 
         $rules = [
             'status' => ['required', Rule::in(array_keys(Task::statusLabels()))],
         ];
 
-        if (auth()->user()->role === 'admin') {
+        if ($canManage) {
             $rules += [
-                'project_id' => ['nullable', 'exists:projects,id'],
+                'project_id' => [$user->role === 'admin' ? 'nullable' : 'required', 'exists:projects,id'],
                 'user_id' => ['required', 'exists:users,id'],
                 'title' => ['required', 'string', 'max:255'],
                 'description' => ['nullable', 'string'],
@@ -153,7 +173,16 @@ class TaskController extends Controller
         $validated = $request->validate($rules);
         $validated['is_completed'] = $validated['status'] === Task::STATUS_COMPLETED;
 
+        if ($canManage) {
+            $this->ensureAssignmentAllowed($user, $validated['project_id'] ?? null, (int) $validated['user_id']);
+        }
+
         $task->update($validated);
+
+        if ($task->wasChanged(['user_id', 'project_id'])) {
+            $task->load('project');
+            $task->project?->addMember($task->user_id, $request->user());
+        }
 
         if ($task->wasChanged('status')) {
             $task->recordActivity('status', 'غيّر الحالة إلى '.$task->statusLabel());
@@ -180,9 +209,7 @@ class TaskController extends Controller
 
     public function updateStatus(Request $request, Task $task)
     {
-        if (auth()->user()->role !== 'admin' && $task->user_id !== auth()->id()) {
-            abort(403);
-        }
+        abort_unless($task->canBeAccessedBy(auth()->user()), 403);
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(array_keys(Task::statusLabels()))],
@@ -197,7 +224,7 @@ class TaskController extends Controller
             $task->recordActivity('status', 'غيّر الحالة إلى '.$task->statusLabel());
         }
 
-        if ($task->user_id !== auth()->id()) {
+        if ((int) $task->user_id !== auth()->id()) {
             $task->user?->notify(new WorkspaceNotification(
                 'تم تغيير حالة مهمة',
                 $task->title.' - '.$task->statusLabel(),
@@ -215,9 +242,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        if (auth()->user()->role !== 'admin' && $task->user_id !== auth()->id()) {
-            abort(403, 'لا يمكنك حذف مهمة ليست مخصصة لك.');
-        }
+        abort_unless($task->canBeAccessedBy(auth()->user()), 403, 'لا يمكنك حذف مهمة ليست مخصصة لك.');
 
         $task->delete();
 
@@ -228,9 +253,7 @@ class TaskController extends Controller
 
     public function toggleComplete(Task $task)
     {
-        if (auth()->user()->role !== 'admin' && $task->user_id !== auth()->id()) {
-            abort(403);
-        }
+        abort_unless($task->canBeAccessedBy(auth()->user()), 403);
 
         $nextStatus = $task->status === Task::STATUS_COMPLETED
             ? Task::STATUS_IN_PROGRESS
@@ -244,5 +267,30 @@ class TaskController extends Controller
         $task->recordActivity('status', 'غيّر الحالة إلى '.$task->statusLabel());
 
         return back()->with('success', 'تم تغيير مرحلة المهمة.');
+    }
+
+    /**
+     * Admins may assign anyone (the assignee joins the project automatically).
+     * Project managers may only assign within projects they manage, to that project's members.
+     */
+    private function ensureAssignmentAllowed(User $actor, ?int $projectId, int $assigneeId): void
+    {
+        if ($actor->role === 'admin') {
+            return;
+        }
+
+        $project = Project::managedBy($actor)->find($projectId);
+
+        if (! $project) {
+            throw ValidationException::withMessages([
+                'project_id' => 'يمكنك إسناد المهام فقط داخل المشاريع التي تديرها.',
+            ]);
+        }
+
+        if (! in_array($assigneeId, $project->assignableUserIds(), true)) {
+            throw ValidationException::withMessages([
+                'user_id' => 'يجب أن يكون الشخص عضواً في المشروع. أضفه من صفحة أعضاء المشروع أولاً.',
+            ]);
+        }
     }
 }
