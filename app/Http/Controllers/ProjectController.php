@@ -131,10 +131,12 @@ class ProjectController extends Controller
             'is_completed' => $validated['status'] === Task::STATUS_COMPLETED,
         ]);
 
+        $task->recordActivity('created', 'أنشأ المهمة ضمن المشروع '.$project->name);
+
         $task->user?->notify(new WorkspaceNotification(
             'تم تعيين مهمة جديدة لك',
             $task->title,
-            route('tasks.index', ['project_id' => $project->id]),
+            route('tasks.show', $task),
         ));
 
         return redirect()->route('projects.index')->with('success', 'تم إسناد المهمة داخل المشروع بنجاح.');
