@@ -3,8 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectDocumentationController;
+use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\BugReportController;
 use App\Http\Controllers\SprintController;
+use App\Http\Controllers\TaskCollaborationController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
@@ -24,6 +26,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 // Routes للمهام
 Route::middleware(['auth'])->group(function () {
     Route::resource('projects', ProjectController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::get('/projects/{project}/members', [ProjectMemberController::class, 'index'])->name('projects.members.index');
+    Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+    Route::delete('/projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
     Route::get('/projects/{project}/documentation', [ProjectDocumentationController::class, 'index'])->name('projects.documentation.index');
     Route::post('/projects/{project}/documentation', [ProjectDocumentationController::class, 'store'])->name('projects.documentation.store');
     Route::patch('/projects/{project}/documentation/{document}', [ProjectDocumentationController::class, 'update'])->name('projects.documentation.update');
@@ -41,7 +46,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/tasks', [ProjectController::class, 'storeTask'])->name('projects.tasks.store');
     Route::resource('meetings', MeetingController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
-    Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('tasks', TaskController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
+    Route::post('/tasks/{task}/comments', [TaskCollaborationController::class, 'storeComment'])->name('tasks.comments.store');
+    Route::delete('/tasks/{task}/comments/{comment}', [TaskCollaborationController::class, 'destroyComment'])->name('tasks.comments.destroy');
+    Route::post('/tasks/{task}/checklist', [TaskCollaborationController::class, 'storeChecklistItem'])->name('tasks.checklist.store');
+    Route::patch('/tasks/{task}/checklist/{item}', [TaskCollaborationController::class, 'toggleChecklistItem'])->name('tasks.checklist.toggle');
+    Route::delete('/tasks/{task}/checklist/{item}', [TaskCollaborationController::class, 'destroyChecklistItem'])->name('tasks.checklist.destroy');
+    Route::post('/tasks/{task}/time-logs', [TaskCollaborationController::class, 'storeTimeLog'])->name('tasks.time-logs.store');
+    Route::delete('/tasks/{task}/time-logs/{timeLog}', [TaskCollaborationController::class, 'destroyTimeLog'])->name('tasks.time-logs.destroy');
     Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete'])->name('tasks.toggle');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
     Route::get('/notifications/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.read');

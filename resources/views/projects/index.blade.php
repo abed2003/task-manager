@@ -181,7 +181,17 @@
                             <tr class="align-top transition hover:bg-slate-50">
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="font-black text-slate-950">{{ $project->name }}</div>
-                                    <div class="mt-1 text-xs font-semibold text-slate-400">{{ $project->tasks_count }} مهمة</div>
+                                    <div class="mt-1 text-xs font-semibold text-slate-400">{{ $project->tasks_count }} مهمة · {{ $project->members_count }} عضو</div>
+                                    @if($project->members->isNotEmpty())
+                                        <div class="mt-2 flex -space-x-2 space-x-reverse">
+                                            @foreach($project->members->take(5) as $member)
+                                                <span title="{{ $member->name }}" class="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-slate-200 text-[11px] font-black text-slate-950">{{ mb_substr($member->name, 0, 1) }}</span>
+                                            @endforeach
+                                            @if($project->members_count > 5)
+                                                <span class="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-slate-950 text-[11px] font-black text-white">+{{ $project->members_count - 5 }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="max-w-xs px-5 py-4">
                                     <p class="line-clamp-2 text-sm leading-6 text-slate-500">{{ $project->description ?: 'لا يوجد وصف مختصر' }}</p>
@@ -210,6 +220,7 @@
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex flex-wrap gap-2">
                                         <a href="{{ route('tasks.index', ['project_id' => $project->id]) }}" class="btn-secondary px-4 py-2 text-xs">المهام</a>
+                                        <a href="{{ route('projects.members.index', $project) }}" class="btn-secondary px-4 py-2 text-xs">الأعضاء</a>
                                         <a href="{{ route('projects.documentation.index', $project) }}" class="btn-secondary px-4 py-2 text-xs">الوثائق</a>
                                         @if(auth()->user()->role === 'admin')
                                             <details class="relative">

@@ -19,9 +19,7 @@ class DashboardController extends Controller
             ? Task::query()
             : $user->tasks();
 
-        $projectsQuery = $isAdmin
-            ? Project::query()
-            : Project::whereHas('tasks', fn ($query) => $query->where('user_id', $user->id));
+        $projectsQuery = Project::accessibleBy($user);
 
         $bugsQuery = $isAdmin
             ? BugReport::query()

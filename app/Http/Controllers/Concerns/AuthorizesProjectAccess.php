@@ -8,12 +8,7 @@ trait AuthorizesProjectAccess
 {
     protected function authorizeProjectAccess(Project $project): void
     {
-        $user = auth()->user();
-
-        abort_unless(
-            $user->role === 'admin' || $project->tasks()->where('user_id', $user->id)->exists(),
-            403
-        );
+        abort_unless($project->isAccessibleBy(auth()->user()), 403);
     }
 
     protected function authorizeAdmin(): void

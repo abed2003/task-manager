@@ -9,7 +9,7 @@ class ProjectPolicy
 {
     public function view(User $user, Project $project): bool
     {
-        return $user->role === 'admin' || $project->tasks()->where('user_id', $user->id)->exists();
+        return $project->isAccessibleBy($user);
     }
 
     public function manage(User $user, Project $project): bool
